@@ -4,8 +4,7 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
-		"build": "biome build",
-		"dev": "biome watch",
+		"build": "bun run build.ts",
 		"lint": "biome lint .",
 		"format": "biome format --write ."
 	},
