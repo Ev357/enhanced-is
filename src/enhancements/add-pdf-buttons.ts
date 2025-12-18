@@ -7,6 +7,13 @@ export const addPdfButtons = () => {
 	);
 
 	data.forEach((element) => {
+		const previousElement = element.previousElementSibling;
+		if (
+			previousElement instanceof HTMLElement &&
+			previousElement.dataset.enhancedIs === "true"
+		)
+			return;
+
 		const data = element.attributes.getNamedItem("data")?.value;
 		if (!data) return;
 
@@ -17,7 +24,7 @@ export const addPdfButtons = () => {
 
 		const link = document.createElement("a");
 		link.className =
-			"enhanced-is inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none hover:bg-accent hover:text-accent-foreground border shadow-xs h-9 px-4 py-2";
+			"hover:bg-accent hover:text-accent-foreground inline-flex h-9 items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium whitespace-nowrap shadow-xs transition-all outline-none";
 		link.href = pdfLink;
 		link.target = "_blank";
 		link.innerText = "Open pdf in a new tab";
@@ -28,14 +35,19 @@ export const addPdfButtons = () => {
 			"image/svg+xml",
 		).documentElement;
 
-		ExternalLink.classList.add("enhanced-is", "size-4", "shrink-0");
+		ExternalLink.classList.add("size-4", "shrink-0");
 
 		link.appendChild(ExternalLink);
 
 		const div = document.createElement("div");
-		div.className = "enhanced-is flex justify-end";
+		div.className = "flex justify-end";
 		div.appendChild(link);
 
-		element.before(div);
+		const container = document.createElement("div");
+		container.dataset.enhancedIs = "true";
+		container.style.display = "contents";
+		container.appendChild(div);
+
+		element.before(container);
 	});
 };

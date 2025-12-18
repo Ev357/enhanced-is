@@ -1,6 +1,6 @@
 /** biome-ignore-all lint/complexity/noImportantStyles: We need to override some styles from IS */
 
-.enhanced-is {
+[data-enhanced-is="true"] {
 	--default-transition-duration: 0.15s;
 	--default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 	--accent: oklch(97% 0 0);
@@ -9,94 +9,96 @@
 	--shadow-color: rgb(0 0 0 / 0.05);
 	--color-neutral-800: oklch(26.9% 0 0);
 
-	&.flex {
+	.flex {
 		display: flex;
 	}
 
-	&.inline-flex {
+	.inline-flex {
 		display: inline-flex;
 	}
 
-	&.shrink-0 {
+	.shrink-0 {
 		flex-shrink: 0;
 	}
 
-	&.items-center {
+	.items-center {
 		align-items: center;
 	}
 
-	&.justify-center {
+	.justify-center {
 		justify-content: center;
 	}
 
-	&.justify-end {
+	.justify-end {
 		justify-content: end;
 	}
 
-	&.gap-2 {
+	.gap-2 {
 		gap: 8px;
 	}
 
-	&.rounded-md {
+	.rounded-md {
 		border-radius: 8px;
 	}
 
-	&.text-sm {
+	.text-sm {
 		font-size: 14px;
 	}
 
-	&.font-medium {
+	.font-medium {
 		font-weight: 500;
 	}
 
-	&.whitespace-nowrap {
+	.whitespace-nowrap {
 		white-space: nowrap;
 	}
 
-	&.transition-all {
+	.transition-all {
 		transition-duration: var(--default-transition-duration);
 		transition-timing-function: var(--default-transition-timing-function);
 		transition-property: all;
 	}
 
-	&.outline-none {
+	.outline-none {
 		outline: none;
 	}
 
-	&.hover\:bg-accent:hover {
+	.hover\:bg-accent:hover {
 		background-color: var(--accent);
 	}
 
-	&.hover\:text-accent-foreground:hover {
+	.hover\:text-accent-foreground:hover {
 		color: var(--accent-foreground);
 	}
 
-	&.border {
+	.border {
 		border: 1px solid var(--border);
 	}
 
-	&.shadow-xs {
+	.shadow-xs {
 		box-shadow: 0 1px 2px 0 var(--shadow-color);
 	}
 
-	&.h-9 {
+	.h-9 {
 		height: 36px;
 	}
 
-	&.px-4 {
+	.px-4 {
 		padding-inline: 16px;
 	}
 
-	&.py-2 {
+	.py-2 {
 		padding-block: 8px;
 	}
 
-	&.size-4 {
+	.size-4 {
 		width: 16px;
 		height: 16px;
 	}
 
 	/* Resets */
-	text-decoration: none !important;
-	color: var(--color-neutral-800);
+	* {
+		text-decoration: none !important;
+		color: var(--color-neutral-800);
+	}
 }
