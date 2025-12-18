@@ -1,5 +1,5 @@
 /* @ts-expect-error */
-import externalLink from "./icons/external-link.svg" with { type: "text" };
+import externalLink from "../icons/external-link.svg" with { type: "text" };
 
 export const addPdfButtons = () => {
 	const data = document.querySelectorAll(
