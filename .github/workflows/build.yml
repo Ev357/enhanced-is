@@ -1,10 +1,8 @@
 name: build
 on:
-  pull_request:
   push:
     tags:
       - "v*.*.*"
-  workflow_dispatch:
 
 jobs:
   build:
@@ -23,9 +21,13 @@ jobs:
         run: |
           bun install --production --frozen-lockfile --ignore-scripts
           bun run build
+          mkdir result
+          cd dist
+          VERSION=${{ github.ref_name }}
+          zip -r ../result/enhanced-is-${VERSION#v}.zip .
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: result/*
           generate_release_notes: true
