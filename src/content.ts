@@ -1,42 +1,28 @@
-/* @ts-expect-error */
-import externalLink from "./icons/external-link.svg" with { type: "text" };
+import { addPdfButtons } from "./add-pdf-buttons";
+import { waitUntil } from "./utils/wait-until";
 
-if (
-	/^\/auth\/el\/fi\/.*\/IB000\/index\.qwarp.*$/.test(window.location.pathname)
-) {
-	const data = document.querySelectorAll(
-		'object[data^="/pdfjs/web/viewer.html"]',
-	);
+const enhancements = () => {
+	if (
+		/^\/auth\/el\/fi\/.*\/IB000\/index\.qwarp.*$/.test(window.location.pathname)
+	) {
+		addPdfButtons();
+	}
+};
 
-	data.forEach((element) => {
-		const data = element.attributes.getNamedItem("data")?.value;
-		if (!data) return;
+enhancements();
 
-		const pdfLink = /^\/pdfjs\/web\/viewer\.html\?file=(.*.pdf)$/.exec(
-			data,
-		)?.[1];
-		if (!pdfLink) return;
+document.addEventListener(
+	"click",
+	async (event) => {
+		if (!(event.target instanceof Element)) return;
 
-		const link = document.createElement("a");
-		link.className =
-			"enhanced-is inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none hover:bg-accent hover:text-accent-foreground border shadow-xs h-9 px-4 py-2";
-		link.href = pdfLink;
-		link.target = "_blank";
-		link.innerText = "Open pdf in a new tab";
+		const clickedLink = event.target?.closest(".io-nav-link");
+		if (!clickedLink) return;
 
-		// biome-ignore lint/style/noNonNullAssertion: Icon will be always present
-		const ExternalLink = document
-			.createRange()
-			.createContextualFragment(externalLink).firstElementChild!;
+		// FIXME: This does not always work
+		await waitUntil(1000);
 
-		ExternalLink.classList.add("enhanced-is", "size-4", "shrink-0");
-
-		link.appendChild(ExternalLink);
-
-		const div = document.createElement("div");
-		div.className = "enhanced-is flex justify-end";
-		div.appendChild(link);
-
-		element.before(div);
-	});
-}
+		enhancements();
+	},
+	true,
+);
