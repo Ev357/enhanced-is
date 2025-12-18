@@ -10,7 +10,8 @@
 		{
 			"matches": ["https://is.muni.cz/*"],
 			"js": ["content.js"],
-			"css": ["content.css"]
+			"css": ["content.css"],
+			"world": "MAIN"
 		}
 	],
 	"browser_specific_settings": {

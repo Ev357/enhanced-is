@@ -1,5 +1,5 @@
 import { addPdfButtons } from "./add-pdf-buttons";
-import { waitUntil } from "./utils/wait-until";
+import { getIsInstance } from "./utils/get-is-instance";
 
 const enhancements = () => {
 	if (
@@ -11,18 +11,14 @@ const enhancements = () => {
 
 enhancements();
 
-document.addEventListener(
-	"click",
-	async (event) => {
-		if (!(event.target instanceof Element)) return;
+(() => {
+	const is = getIsInstance();
+	if (!is) return;
 
-		const clickedLink = event.target?.closest(".io-nav-link");
-		if (!clickedLink) return;
-
-		// FIXME: This does not always work
-		await waitUntil(1000);
+	const originalCallInit = is.Design.call_init;
+	is.Design.call_init = function (...rest) {
+		originalCallInit.apply(this, rest);
 
 		enhancements();
-	},
-	true,
-);
+	};
+})();
