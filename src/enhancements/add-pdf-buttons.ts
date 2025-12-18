@@ -22,10 +22,11 @@ export const addPdfButtons = () => {
 		link.target = "_blank";
 		link.innerText = "Open pdf in a new tab";
 
-		// biome-ignore lint/style/noNonNullAssertion: Icon will be always present
-		const ExternalLink = document
-			.createRange()
-			.createContextualFragment(externalLink).firstElementChild!;
+		const parser = new DOMParser();
+		const ExternalLink = parser.parseFromString(
+			externalLink,
+			"image/svg+xml",
+		).documentElement;
 
 		ExternalLink.classList.add("enhanced-is", "size-4", "shrink-0");
 

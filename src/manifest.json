@@ -16,7 +16,10 @@
 	],
 	"browser_specific_settings": {
 		"gecko": {
-			"id": "enhanced-is@evest.dev"
+			"id": "enhanced-is@evest.dev",
+			"data_collection_permissions": {
+				"required": ["none"]
+			}
 		}
 	}
 }
