@@ -21,7 +21,7 @@ jobs:
 
       - name: Build
         run: |
-          bun install --production --frozen-lockfile
+          bun install --production --frozen-lockfile --ignore-scripts
           bun run build
 
       - name: Release
