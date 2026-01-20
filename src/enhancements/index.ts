@@ -6,4 +6,10 @@ export const enhancements = () => {
 	) {
 		addPdfButtons();
 	}
+
+	if (
+		/^\/auth\/el\/fi\/.*\/PB154\/index\.qwarp.*$/.test(window.location.pathname)
+	) {
+		addPdfButtons();
+	}
 };
