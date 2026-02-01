@@ -1,5 +1,16 @@
 await Bun.build({
-	entrypoints: ["./src/content.ts", "./src/content.css"],
+	entrypoints: [
+		"./src/content.ts",
+		"./src/main-content.ts",
+		"./src/background.ts",
+		"./src/content.css",
+	],
+	outdir: "./dist",
+	minify: true,
+});
+
+await Bun.build({
+	entrypoints: ["./src/page.html"],
 	outdir: "./dist",
 	minify: true,
 });

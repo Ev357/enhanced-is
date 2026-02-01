@@ -63,6 +63,10 @@
 		outline: none;
 	}
 
+	.bg-white {
+		background-color: white;
+	}
+
 	.hover\:bg-accent:hover {
 		background-color: var(--accent);
 	}

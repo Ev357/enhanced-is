@@ -1,5 +1,5 @@
-/* @ts-expect-error */
-import externalLink from "../icons/external-link.svg" with { type: "text" };
+import { buttonClass } from "../components/button";
+import { externalLinkIcon } from "../icons/external-link";
 
 export const addPdfButtons = () => {
 	const data = document.querySelectorAll(
@@ -23,21 +23,12 @@ export const addPdfButtons = () => {
 		if (!pdfLink) return;
 
 		const link = document.createElement("a");
-		link.className =
-			"hover:bg-accent hover:text-accent-foreground inline-flex h-9 items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium whitespace-nowrap shadow-xs transition-all outline-none";
+		link.className = buttonClass;
 		link.href = pdfLink;
 		link.target = "_blank";
 		link.innerText = "Open pdf in a new tab";
 
-		const parser = new DOMParser();
-		const ExternalLink = parser.parseFromString(
-			externalLink,
-			"image/svg+xml",
-		).documentElement;
-
-		ExternalLink.classList.add("size-4", "shrink-0");
-
-		link.appendChild(ExternalLink);
+		link.appendChild(externalLinkIcon());
 
 		const div = document.createElement("div");
 		div.className = "flex justify-end";

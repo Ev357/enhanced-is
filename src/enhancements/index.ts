@@ -1,15 +1,10 @@
-import { addPdfButtons } from "./add-pdf-buttons";
+import { compute } from "./compute";
 
-export const enhancements = () => {
-	if (
-		/^\/auth\/el\/fi\/.*\/IB000\/index\.qwarp.*$/.test(window.location.pathname)
-	) {
-		addPdfButtons();
-	}
-
-	if (
-		/^\/auth\/el\/fi\/.*\/PB154\/index\.qwarp.*$/.test(window.location.pathname)
-	) {
-		addPdfButtons();
+export const enhancements = async () => {
+	if (/^\/auth\/seminare\/student.*$/.test(window.location.pathname)) {
+		const result = await compute();
+		if (result instanceof Error) {
+			console.error(result);
+		}
 	}
 };
