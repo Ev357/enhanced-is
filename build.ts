@@ -1,3 +1,5 @@
+import tailwindcss from "bun-plugin-tailwind";
+
 await Bun.build({
 	entrypoints: [
 		"./src/content.ts",
@@ -13,6 +15,7 @@ await Bun.build({
 	entrypoints: ["./src/page.html"],
 	outdir: "./dist",
 	minify: true,
+	plugins: [tailwindcss],
 });
 
 const manifest = Bun.file("./src/manifest.json");
