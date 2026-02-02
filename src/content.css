@@ -1,108 +1,106 @@
-/** biome-ignore-all lint/complexity/noImportantStyles: We need to override some styles from IS */
-
 [data-enhanced-is="true"] {
-	--default-transition-duration: 0.15s;
-	--default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-	--accent: oklch(97% 0 0);
-	--accent-foreground: oklch(20.5% 0 0);
-	--border: oklch(92.2% 0 0);
-	--shadow-color: rgb(0 0 0 / 0.05);
-	--color-neutral-800: oklch(26.9% 0 0);
+  --default-transition-duration: 0.15s;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  --accent: oklch(97% 0 0);
+  --accent-foreground: oklch(20.5% 0 0);
+  --border: oklch(92.2% 0 0);
+  --shadow-color: rgb(0 0 0 / 0.05);
+  --color-neutral-800: oklch(26.9% 0 0);
 
-	.flex {
-		display: flex;
-	}
+  .flex {
+    display: flex;
+  }
 
-	.inline-flex {
-		display: inline-flex;
-	}
+  .inline-flex {
+    display: inline-flex;
+  }
 
-	.shrink-0 {
-		flex-shrink: 0;
-	}
+  .shrink-0 {
+    flex-shrink: 0;
+  }
 
-	.items-center {
-		align-items: center;
-	}
+  .items-center {
+    align-items: center;
+  }
 
-	.justify-center {
-		justify-content: center;
-	}
+  .justify-center {
+    justify-content: center;
+  }
 
-	.justify-end {
-		justify-content: end;
-	}
+  .justify-end {
+    justify-content: end;
+  }
 
-	.gap-2 {
-		gap: 8px;
-	}
+  .gap-2 {
+    gap: 8px;
+  }
 
-	.rounded-md {
-		border-radius: 8px;
-	}
+  .rounded-md {
+    border-radius: 8px;
+  }
 
-	.text-sm {
-		font-size: 14px;
-	}
+  .text-sm {
+    font-size: 14px;
+  }
 
-	.font-medium {
-		font-weight: 500;
-	}
+  .font-medium {
+    font-weight: 500;
+  }
 
-	.whitespace-nowrap {
-		white-space: nowrap;
-	}
+  .whitespace-nowrap {
+    white-space: nowrap;
+  }
 
-	.transition-all {
-		transition-duration: var(--default-transition-duration);
-		transition-timing-function: var(--default-transition-timing-function);
-		transition-property: all;
-	}
+  .transition-all {
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--default-transition-timing-function);
+    transition-property: all;
+  }
 
-	.outline-none {
-		outline: none;
-	}
+  .outline-none {
+    outline: none;
+  }
 
-	.bg-white {
-		background-color: white;
-	}
+  .bg-white {
+    background-color: white;
+  }
 
-	.hover\:bg-accent:hover {
-		background-color: var(--accent);
-	}
+  .hover\:bg-accent:hover {
+    background-color: var(--accent);
+  }
 
-	.hover\:text-accent-foreground:hover {
-		color: var(--accent-foreground);
-	}
+  .hover\:text-accent-foreground:hover {
+    color: var(--accent-foreground);
+  }
 
-	.border {
-		border: 1px solid var(--border);
-	}
+  .border {
+    border: 1px solid var(--border);
+  }
 
-	.shadow-xs {
-		box-shadow: 0 1px 2px 0 var(--shadow-color);
-	}
+  .shadow-xs {
+    box-shadow: 0 1px 2px 0 var(--shadow-color);
+  }
 
-	.h-9 {
-		height: 36px;
-	}
+  .h-9 {
+    height: 36px;
+  }
 
-	.px-4 {
-		padding-inline: 16px;
-	}
+  .px-4 {
+    padding-inline: 16px;
+  }
 
-	.py-2 {
-		padding-block: 8px;
-	}
+  .py-2 {
+    padding-block: 8px;
+  }
 
-	.size-4 {
-		width: 16px;
-		height: 16px;
-	}
+  .size-4 {
+    width: 16px;
+    height: 16px;
+  }
 
-	/* Resets */
-	* {
-		text-decoration: none !important;
-		color: var(--color-neutral-800);
-	}
+  /* Resets */
+  * {
+    text-decoration: none !important;
+    color: var(--color-neutral-800);
+  }
 }

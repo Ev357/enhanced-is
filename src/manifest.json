@@ -1,40 +1,40 @@
 {
-	"name": "Enhanced IS",
-	"description": "Extension that enhances MUNI IS",
-	"version": "1.0.1",
-	"manifest_version": 3,
-	"action": {
-		"default_icon": "icon.png"
-	},
-	"permissions": ["storage"],
-	"content_scripts": [
-		{
-			"matches": ["https://is.muni.cz/*"],
-			"js": ["main-content.js"],
-			"css": ["content.css"],
-			"world": "MAIN"
-		},
-		{
-			"matches": ["https://is.muni.cz/*"],
-			"js": ["content.js"],
-			"css": ["content.css"]
-		}
-	],
-	"background": {
-		"service_worker": "background.js"
-	},
-	"browser_specific_settings": {
-		"gecko": {
-			"id": "enhanced-is@evest.dev",
-			"data_collection_permissions": {
-				"required": ["none"]
-			}
-		}
-	},
-	"web_accessible_resources": [
-		{
-			"resources": ["page.html"],
-			"matches": ["<all_urls>"]
-		}
-	]
+  "name": "Enhanced IS",
+  "description": "Extension that enhances MUNI IS",
+  "version": "1.0.1",
+  "manifest_version": 3,
+  "action": {
+    "default_icon": "icon.png"
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://is.muni.cz/*"],
+      "js": ["main-content.js"],
+      "css": ["content.css"],
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://is.muni.cz/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "enhanced-is@evest.dev",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["page.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

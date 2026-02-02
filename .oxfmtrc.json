@@ -1,0 +1,7 @@
+{
+  "experimentalTailwindcss": {
+    "stylesheet": "./src/style.css",
+    "attributes": ["class"],
+    "preserveWhitespace": true
+  }
+}

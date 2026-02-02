@@ -4,13 +4,13 @@ import { getIsInstance } from "./utils/get-is-instance";
 mainEnhancements();
 
 (() => {
-	const is = getIsInstance();
-	if (!is) return;
+  const is = getIsInstance();
+  if (!is) return;
 
-	const originalCallInit = is.Design.call_init;
-	is.Design.call_init = function (...rest) {
-		originalCallInit.apply(this, rest);
+  const originalCallInit = is.Design.call_init;
+  is.Design.call_init = function (...rest) {
+    originalCallInit.apply(this, rest);
 
-		mainEnhancements();
-	};
+    mainEnhancements();
+  };
 })();
