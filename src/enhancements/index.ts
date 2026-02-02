@@ -1,10 +1,7 @@
 import { compute } from "./compute";
 
-export const enhancements = async () => {
+export const enhancements = () => {
   if (/^\/auth\/seminare\/student.*$/.test(window.location.pathname)) {
-    const result = await compute();
-    if (result instanceof Error) {
-      console.error(result);
-    }
+    compute();
   }
 };

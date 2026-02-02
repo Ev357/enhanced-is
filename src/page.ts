@@ -1,64 +1,78 @@
 import browser from "webextension-polyfill";
-import type { Seminar, Subject } from "./enhancements/compute";
+import type { Schedule, Seminar, Subject } from "./enhancements/compute";
 
-const addedSeminars = new Set<Seminar>();
+const addedSubjects = new Map<Subject, Seminar>();
 
 const handleSelect = (event: PointerEvent, seminar: Seminar, subject: Subject) => {
   const currentTarget = event.currentTarget;
   if (!(currentTarget instanceof HTMLButtonElement))
     throw new Error("currentTarget is not a HTMLButtonElement");
 
-  if (!addedSeminars.has(seminar)) {
-    addSeminar(seminar, subject);
+  const addedSeminar = addedSubjects.get(subject);
+
+  if (!addedSeminar) {
+    addSubject(subject, seminar);
     currentTarget.dataset.selected = "true";
     return;
   }
 
-  removeSeminar(seminar);
-  currentTarget.dataset.selected = "false";
+  removeSubject(subject);
+
+  if (seminar === addedSeminar) {
+    currentTarget.dataset.selected = "false";
+    return;
+  }
+
+  const previousSelectedSeminar = document.getElementById(addedSeminar.id)!;
+  previousSelectedSeminar.dataset.selected = "false";
+  addSubject(subject, seminar);
+  currentTarget.dataset.selected = "true";
 };
 
-const ID_MAP: Record<string, string> = {
-  Po: "mon",
-  Út: "tue",
-  St: "wed",
-  Čt: "thu",
-  Pá: "fri",
+const addSubject = (subject: Subject, seminar: Seminar) => {
+  for (const [index, schedule] of seminar.schedules.entries()) {
+    const seminarContainerDiv = document.createElement("div");
+    seminarContainerDiv.classList = "absolute p-0.5";
+    seminarContainerDiv.id = `${subject.id}-${index}`;
+
+    const { offset, duration } = calculateSchedulePosition(schedule);
+
+    seminarContainerDiv.style.top = `${offset}px`;
+    seminarContainerDiv.style.height = `${duration}px`;
+
+    const seminarDiv = document.createElement("div");
+    seminarDiv.classList = "h-full rounded border bg-gray-900 p-0.5";
+
+    const seminarTitleP = document.createElement("p");
+    seminarTitleP.textContent = subject.title;
+    seminarDiv.appendChild(seminarTitleP);
+
+    const seminarScheduleP = document.createElement("p");
+    seminarScheduleP.textContent = `${schedule.day} ${schedule.startTime} - ${schedule.endTime}`;
+    seminarDiv.appendChild(seminarScheduleP);
+
+    seminarContainerDiv.appendChild(seminarDiv);
+
+    document.getElementById(schedule.day)!.appendChild(seminarContainerDiv);
+  }
+
+  addedSubjects.set(subject, seminar);
 };
 
-const addSeminar = (seminar: Seminar, subject: Subject) => {
-  const seminarContainerDiv = document.createElement("div");
-  seminarContainerDiv.classList = "absolute p-0.5";
-  seminarContainerDiv.id = `${seminar.id}-calendar`;
+const removeSubject = (subject: Subject) => {
+  const calendarDivs = Array.from(document.querySelectorAll(`div[id^="${subject.id}-"]`));
+  if (!calendarDivs.length) throw new Error("Calendar divs not found");
 
-  const { offset, duration } = calculatePosition(seminar);
+  for (const calendarDiv of calendarDivs) {
+    calendarDiv.remove();
+  }
 
-  seminarContainerDiv.style.top = `${offset}px`;
-  seminarContainerDiv.style.height = `${duration}px`;
-
-  const seminarDiv = document.createElement("div");
-  seminarDiv.classList = "h-full rounded border bg-gray-900 p-0.5";
-  seminarDiv.textContent = subject.title;
-  seminarContainerDiv.appendChild(seminarDiv);
-
-  const day = ID_MAP[seminar.schedule.day];
-  if (!day) throw new Error(`Unknown day: ${seminar.schedule.day}`);
-  document.getElementById(day)!.appendChild(seminarContainerDiv);
-
-  addedSeminars.add(seminar);
+  addedSubjects.delete(subject);
 };
 
-const removeSeminar = (seminar: Seminar) => {
-  const calendarDiv = document.getElementById(`${seminar.id}-calendar`);
-  if (!calendarDiv) throw new Error("Calendar div not found");
-
-  calendarDiv.remove();
-  addedSeminars.delete(seminar);
-};
-
-const calculatePosition = (seminar: Seminar) => {
-  const [startHourString, startMinuteString] = seminar.schedule.startTime.split(":");
-  const [endHourString, endMinuteString] = seminar.schedule.endTime.split(":");
+const calculateSchedulePosition = (schedule: Schedule) => {
+  const [startHourString, startMinuteString] = schedule.startTime.split(":");
+  const [endHourString, endMinuteString] = schedule.endTime.split(":");
 
   if (!startHourString || !startMinuteString || !endHourString || !endMinuteString)
     throw new Error("Invalid schedule");
@@ -110,7 +124,12 @@ const calculatePosition = (seminar: Seminar) => {
       seminarButton.appendChild(seminarIdP);
 
       const seminarScheduleP = document.createElement("p");
-      seminarScheduleP.textContent = `schedule: ${seminar.schedule.day} ${seminar.schedule.startTime} - ${seminar.schedule.endTime}`;
+      const scheduleString = seminar.schedules.reduce(
+        (scheduleString, schedule, index) =>
+          `${scheduleString}${schedule.day} ${schedule.startTime} - ${schedule.endTime}${index === seminar.schedules.length - 1 ? "" : ", "}`,
+        "",
+      );
+      seminarScheduleP.textContent = `schedule: ${scheduleString}`;
       seminarButton.appendChild(seminarScheduleP);
 
       const seminarTeacherP = document.createElement("p");
@@ -149,6 +168,4 @@ const calculatePosition = (seminar: Seminar) => {
 
     document.getElementById("subjects")!.appendChild(subjectDiv);
   }
-
-  console.log(subjects);
 })();

@@ -9,8 +9,7 @@ export type Subject = {
 };
 export const compute = async () => {
   const subjectsInfoDiv = document.getElementById("ma_sem_skup");
-  if (!subjectsInfoDiv || subjectsInfoDiv instanceof Error)
-    return new Error("No subjects with seminars div");
+  if (!subjectsInfoDiv) return;
 
   const button = document.createElement("button");
   button.className = buttonClass;
@@ -18,11 +17,11 @@ export const compute = async () => {
   button.type = "button";
 
   button.addEventListener("click", async () => {
-    const subjectsWithSeminars = getSubjectInfos(subjectsInfoDiv);
-    if (subjectsWithSeminars instanceof Error) return subjectsWithSeminars;
+    const subjectInfos = getSubjectInfos(subjectsInfoDiv);
+    if (subjectInfos instanceof Error) throw subjectInfos;
 
-    const subjects = await fetchSujects(subjectsWithSeminars);
-    if (subjects instanceof Error) return subjects;
+    const subjects = await fetchSujects(subjectInfos);
+    if (subjects instanceof Error) throw subjects;
 
     await browser.storage.local.set({ subjects });
     const url = browser.runtime.getURL("page.html");
@@ -38,15 +37,16 @@ export const compute = async () => {
 };
 
 const fetchSujects = async (subjectInfos: SubjectInfo[]) => {
-  const promises = subjectInfos.map(async (subject) => {
-    const response = await fetch(subject.href);
+  const promises = subjectInfos.map(async (subjectInfo) => {
+    const response = await fetch(subjectInfo.href);
     if (!response.ok) throw new Error(`Response status: ${response.status}`);
 
     const result = await response.text();
     const seminars = parseSeminars(result);
     if (seminars instanceof Error) throw seminars;
 
-    return { href: subject.href, title: subject.title, seminars };
+    const subject: Subject = { ...subjectInfo, seminars };
+    return subject;
   });
 
   try {
@@ -80,7 +80,7 @@ const parseSeminars = (html: string) => {
 
 export type Seminar = {
   id: string;
-  schedule: Schedule;
+  schedules: Schedule[];
   teacher: Teacher;
   registerLink: string;
   colisions?: Colision[];
@@ -93,11 +93,8 @@ const parseSeminar = (element: HTMLTableRowElement) => {
   const id = seminarDiv.querySelector("h5")?.textContent;
   if (!id) return new Error("No id");
 
-  const scheduleString = seminarDiv.childNodes[1]?.textContent;
-  if (!scheduleString) return new Error("No schedule");
-
-  const schedule = parseSchedule(scheduleString);
-  if (schedule instanceof Error) return schedule;
+  const schedules = parseSchedule(seminarDiv);
+  if (schedules instanceof Error) return schedules;
 
   const teacher = parseTeacher(seminarDiv);
   if (teacher instanceof Error) return teacher;
@@ -112,7 +109,7 @@ const parseSeminar = (element: HTMLTableRowElement) => {
 
   const seminar: Seminar = {
     id,
-    schedule,
+    schedules,
     teacher,
     registerLink,
     colisions,
@@ -139,8 +136,9 @@ const parseColisions = (element: HTMLTableRowElement) => {
     const name = colisionLi.childNodes[0]?.textContent;
     if (!name) return new Error("No name");
 
-    const schedule = parseSchedule(name);
+    const schedule = parseScheduleString(name);
     if (schedule instanceof Error) return schedule;
+    if (!schedule) return new Error("No schedule");
 
     colisions.push({ name, schedule });
   }
@@ -167,29 +165,72 @@ const parseTeacher = (seminarDiv: Element) => {
   return teacher;
 };
 
+type WeekDay = "Mon" | "Tue" | "Wed" | "Thu" | "Fri";
+
 export type Schedule = {
-  day: string;
+  day: WeekDay;
   startTime: string;
   endTime: string;
 };
 
-const parseSchedule = (scheduleString: string) => {
-  const regexResults = /^.* (.+) (\d\d?:\d\d)–(\d\d?:\d\d) $/.exec(scheduleString);
-  if (!regexResults) return new Error("No regex results");
+const parseSchedule = (seminarDiv: Element) => {
+  const scheduleSet = new Set<string>();
+  let schedule: string | undefined = undefined;
+  const nodes = Array.from(seminarDiv.childNodes).slice(1);
+  for (const node of nodes) {
+    const scheduleString = node.textContent;
+    if (!scheduleString) return new Error("Text content is empty");
 
-  const day = regexResults[1];
+    const scheduleResult = parseScheduleString(scheduleString);
+    if (scheduleResult instanceof Error) return scheduleResult;
+    if (scheduleResult) {
+      schedule = JSON.stringify(scheduleResult);
+      continue;
+    }
+
+    if (schedule) {
+      scheduleSet.add(schedule);
+      schedule = undefined;
+      continue;
+    }
+
+    break;
+  }
+
+  return Array.from(scheduleSet.keys()).map((scheduleString) => {
+    const schedule: Schedule = JSON.parse(scheduleString);
+    return schedule;
+  });
+};
+
+const ID_MAP: Record<string, WeekDay> = {
+  Po: "Mon",
+  Út: "Tue",
+  St: "Wed",
+  Čt: "Thu",
+  Pá: "Fri",
+};
+
+const parseScheduleString = (scheduleString: string) => {
+  const regexResults = /^.* (Po|Út|St|Čt|Pá).* (\d\d?:\d\d)–(\d\d?:\d\d) $/.exec(scheduleString);
+  if (!regexResults) return;
+
+  const dayCzech = regexResults[1];
   const startTime = regexResults[2];
   const endTime = regexResults[3];
 
-  if (!day || !startTime || !endTime) return new Error("No day, startTime or endTime");
+  if (!dayCzech || !startTime || !endTime) return new Error("No day, startTime or endTime");
 
-  const schedule: Schedule = { day, startTime, endTime };
-  return schedule;
+  const day = ID_MAP[dayCzech];
+  if (!day) return new Error(`Unknown day: ${dayCzech}`);
+
+  return { day, startTime, endTime };
 };
 
 export type SubjectInfo = {
-  href: string;
+  id: string;
   title: string;
+  href: string;
 };
 const getSubjectInfos = (subjectsInfoDiv: Element) => {
   const subjectsInfoA = Array.from(subjectsInfoDiv.querySelectorAll('a[href^="./student"]'));
@@ -201,7 +242,11 @@ const getSubjectInfos = (subjectsInfoDiv: Element) => {
     const titleB = subjects.querySelector("b");
     if (!titleB) return new Error("No title b element");
 
+    const id = titleB.textContent.split(" ")[0];
+    if (!id) return new Error("No id");
+
     subjectsInfo.push({
+      id,
       href: subjects.href,
       title: titleB.textContent,
     });
