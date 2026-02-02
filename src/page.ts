@@ -51,6 +51,10 @@ const addSubject = (subject: Subject, seminar: Seminar) => {
     seminarScheduleP.textContent = `${schedule.day} ${schedule.startTime} - ${schedule.endTime}`;
     seminarDiv.appendChild(seminarScheduleP);
 
+    const seminarTeacherP = document.createElement("p");
+    seminarTeacherP.textContent = seminar.teacher.name;
+    seminarDiv.appendChild(seminarTeacherP);
+
     seminarContainerDiv.appendChild(seminarDiv);
 
     document.getElementById(schedule.day)!.appendChild(seminarContainerDiv);
