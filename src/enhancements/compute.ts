@@ -2,6 +2,7 @@ import browser from "webextension-polyfill";
 import { buttonClass } from "../components/button";
 
 export type Subject = {
+  id: string;
   href: string;
   title: string;
   seminars: Seminar[];
@@ -51,7 +52,7 @@ const fetchSujects = async (subjectInfos: SubjectInfo[]) => {
   try {
     return await Promise.all(promises);
   } catch (error) {
-    if (!(error instanceof Error)) new Error("Unknown error");
+    if (!(error instanceof Error)) return new Error("Unknown error");
     return error;
   }
 };
