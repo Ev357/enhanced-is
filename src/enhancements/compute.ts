@@ -37,23 +37,23 @@ export const compute = async () => {
 };
 
 const fetchSujects = async (subjectInfos: SubjectInfo[]) => {
-  const subjects: Subject[] = [];
-  for (const subject of subjectInfos) {
-    try {
-      const response = await fetch(subject.href);
-      if (!response.ok) return Error(`Response status: ${response.status}`);
+  const promises = subjectInfos.map(async (subject) => {
+    const response = await fetch(subject.href);
+    if (!response.ok) throw new Error(`Response status: ${response.status}`);
 
-      const result = await response.text();
-      const seminars = parseSeminars(result);
-      if (seminars instanceof Error) return seminars;
+    const result = await response.text();
+    const seminars = parseSeminars(result);
+    if (seminars instanceof Error) throw seminars;
 
-      subjects.push({ href: subject.href, title: subject.title, seminars });
-    } catch (error) {
-      if (!(error instanceof Error)) return new Error("Not an error");
-      return error;
-    }
+    return { href: subject.href, title: subject.title, seminars };
+  });
+
+  try {
+    return await Promise.all(promises);
+  } catch (error) {
+    if (!(error instanceof Error)) new Error("Unknown error");
+    return error;
   }
-  return subjects;
 };
 
 const parseSeminars = (html: string) => {
