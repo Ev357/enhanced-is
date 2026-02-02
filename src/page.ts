@@ -1,14 +1,69 @@
 import browser from "webextension-polyfill";
 import type { Schedule, Seminar, Subject } from "./enhancements/compute";
 
-const addedSubjects = new Map<Subject, Seminar>();
+const addedSubjects = {
+  get: async (subject: Subject) => {
+    const result = await browser.storage.local.get("addedSubjects");
+    if (!("addedSubjects" in result)) return;
 
-const handleSelect = (event: PointerEvent, seminar: Seminar, subject: Subject) => {
+    /* @ts-expect-error */
+    const addedSubjects: [Subject, Seminar][] = result.addedSubjects;
+    const getResult = addedSubjects.find(([addedSubject]) => addedSubject.id === subject.id);
+    if (getResult) {
+      return getResult[1];
+    }
+  },
+  set: async (subject: Subject, seminar: Seminar) => {
+    const result = await browser.storage.local.get("addedSubjects");
+    if (!("addedSubjects" in result)) {
+      await browser.storage.local.set({ addedSubjects: [[subject, seminar]] });
+      return;
+    }
+
+    /* @ts-expect-error */
+    const unfilteredAddedSubjects: [Subject, Seminar][] = result.addedSubjects;
+    const addedSubjects = unfilteredAddedSubjects.filter(
+      ([addedSubject]) => addedSubject.id !== subject.id,
+    );
+    addedSubjects.push([subject, seminar]);
+
+    await browser.storage.local.set({ addedSubjects });
+  },
+  delete: async (subject: Subject) => {
+    const result = await browser.storage.local.get("addedSubjects");
+    if (!("addedSubjects" in result)) {
+      return false;
+    }
+
+    /* @ts-expect-error */
+    const addedSubjects: [Subject, Seminar][] = result.addedSubjects;
+    const index = addedSubjects.findIndex(([addedSubject]) => addedSubject.id === subject.id);
+    if (index === -1) {
+      return false;
+    }
+    addedSubjects.splice(index, 1);
+    await browser.storage.local.set({ addedSubjects });
+
+    return true;
+  },
+  entries: async () => {
+    const result = await browser.storage.local.get("addedSubjects");
+    if (!("addedSubjects" in result)) {
+      return [];
+    }
+
+    /* @ts-expect-error */
+    const addedSubjects: [Subject, Seminar][] = result.addedSubjects;
+    return addedSubjects;
+  },
+};
+
+const handleSelect = async (event: PointerEvent, seminar: Seminar, subject: Subject) => {
   const currentTarget = event.currentTarget;
   if (!(currentTarget instanceof HTMLButtonElement))
     throw new Error("currentTarget is not a HTMLButtonElement");
 
-  const addedSeminar = addedSubjects.get(subject);
+  const addedSeminar = await addedSubjects.get(subject);
 
   if (!addedSeminar) {
     addSubject(subject, seminar);
@@ -16,20 +71,25 @@ const handleSelect = (event: PointerEvent, seminar: Seminar, subject: Subject) =
     return;
   }
 
-  removeSubject(subject);
+  await removeSubject(subject);
 
-  if (seminar === addedSeminar) {
+  if (seminar.id === addedSeminar.id) {
     currentTarget.dataset.selected = "false";
     return;
   }
 
   const previousSelectedSeminar = document.getElementById(addedSeminar.id)!;
   previousSelectedSeminar.dataset.selected = "false";
-  addSubject(subject, seminar);
+  await addSubject(subject, seminar);
   currentTarget.dataset.selected = "true";
 };
 
-const addSubject = (subject: Subject, seminar: Seminar) => {
+const addSubject = async (subject: Subject, seminar: Seminar) => {
+  addSubjectToCalendar(subject, seminar);
+  await addedSubjects.set(subject, seminar);
+};
+
+const addSubjectToCalendar = (subject: Subject, seminar: Seminar) => {
   for (const [index, schedule] of seminar.schedules.entries()) {
     const seminarContainerDiv = document.createElement("div");
     seminarContainerDiv.classList = "absolute p-0.5";
@@ -59,11 +119,9 @@ const addSubject = (subject: Subject, seminar: Seminar) => {
 
     document.getElementById(schedule.day)!.appendChild(seminarContainerDiv);
   }
-
-  addedSubjects.set(subject, seminar);
 };
 
-const removeSubject = (subject: Subject) => {
+const removeSubject = async (subject: Subject) => {
   const calendarDivs = Array.from(document.querySelectorAll(`div[id^="${subject.id}-"]`));
   if (!calendarDivs.length) throw new Error("Calendar divs not found");
 
@@ -71,7 +129,7 @@ const removeSubject = (subject: Subject) => {
     calendarDiv.remove();
   }
 
-  addedSubjects.delete(subject);
+  await addedSubjects.delete(subject);
 };
 
 const calculateSchedulePosition = (schedule: Schedule) => {
@@ -171,5 +229,11 @@ const calculateSchedulePosition = (schedule: Schedule) => {
     }
 
     document.getElementById("subjects")!.appendChild(subjectDiv);
+  }
+
+  for (const [subject, seminar] of await addedSubjects.entries()) {
+    addSubjectToCalendar(subject, seminar);
+    const selectedSeminar = document.getElementById(seminar.id)!;
+    selectedSeminar.dataset.selected = "true";
   }
 })();
