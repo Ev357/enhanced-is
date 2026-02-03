@@ -153,6 +153,49 @@ const calculateSchedulePosition = (schedule: Schedule) => {
   };
 };
 
+type ComputedRating = {
+  averageClarity?: number;
+  averageSubjectDifficulty?: number;
+};
+
+const computeRatings = (subject: Subject) => {
+  const totalData = subject.seminars.reduce(
+    (total, seminar) => {
+      if (!seminar.teacher.rating) {
+        return total;
+      }
+
+      return {
+        claritySum: total.claritySum + seminar.teacher.rating.clarity,
+        clarityCount: total.clarityCount + 1,
+        subjectDifficulty: total.subjectDifficulty + seminar.teacher.rating.subjectDifficulty,
+        subjectDifficultyCount: total.subjectDifficultyCount + 1,
+      };
+    },
+    {
+      claritySum: 0,
+      clarityCount: 0,
+      subjectDifficulty: 0,
+      subjectDifficultyCount: 0,
+    },
+  );
+
+  const averageClarity =
+    totalData.clarityCount !== 0
+      ? Math.round((totalData.claritySum / totalData.clarityCount) * 100) / 100
+      : undefined;
+  const averageSubjectDifficulty =
+    totalData.subjectDifficultyCount !== 0
+      ? Math.round((totalData.subjectDifficulty / totalData.subjectDifficultyCount) * 100) / 100
+      : undefined;
+
+  const computedRating: ComputedRating = {
+    averageClarity,
+    averageSubjectDifficulty,
+  };
+  return computedRating;
+};
+
 (async () => {
   const data = await browser.storage.local.get("subjects");
   /* @ts-expect-error */
@@ -161,10 +204,27 @@ const calculateSchedulePosition = (schedule: Schedule) => {
     const subjectDiv = document.createElement("div");
     subjectDiv.classList = "flex w-80 flex-col rounded border";
 
+    const header = document.createElement("div");
+    header.classList = "flex h-20 flex-col p-2";
+
     const subjectTitle = document.createElement("p");
-    subjectTitle.classList = "h-20 p-2 text-center";
+    subjectTitle.classList = "text-center";
     subjectTitle.textContent = subject.title;
-    subjectDiv.appendChild(subjectTitle);
+    header.appendChild(subjectTitle);
+
+    const rating = computeRatings(subject);
+    if (rating.averageClarity) {
+      const clarityP = document.createElement("p");
+      clarityP.textContent = `average clarity: ${rating.averageClarity}`;
+      header.appendChild(clarityP);
+    }
+    if (rating.averageSubjectDifficulty) {
+      const subjectDifficultyP = document.createElement("p");
+      subjectDifficultyP.textContent = `average subject difficulty: ${rating.averageSubjectDifficulty}`;
+      header.appendChild(subjectDifficultyP);
+    }
+
+    subjectDiv.appendChild(header);
 
     const subjectDivider = document.createElement("div");
     subjectDivider.classList = "h-px w-full bg-white";
@@ -174,10 +234,11 @@ const calculateSchedulePosition = (schedule: Schedule) => {
     seminarContainer.classList = "flex flex-col gap-2 p-2";
     subjectDiv.appendChild(seminarContainer);
 
+    const seminars: { seminarButton: HTMLButtonElement; seminar: Seminar }[] = [];
     for (const seminar of subject.seminars) {
       const seminarButton = document.createElement("button");
       seminarButton.classList =
-        "flex flex-col rounded border p-2 text-start data-[selected=true]:bg-gray-500";
+        "flex h-48 flex-col rounded border p-2 text-start data-[selected=true]:bg-gray-500";
       seminarButton.id = seminar.id;
       seminarButton.dataset.selected = "false";
 
@@ -204,13 +265,22 @@ const calculateSchedulePosition = (schedule: Schedule) => {
       seminarTeacherA.textContent = seminar.teacher.name;
       seminarTeacherP.appendChild(seminarTeacherA);
 
-      if (seminar.teacher.ratingLink) {
-        const seminarRatingA = document.createElement("a");
-        seminarRatingA.href = seminar.teacher.ratingLink;
-        seminarRatingA.target = "_blank";
-        seminarRatingA.classList = "hover:underline";
-        seminarRatingA.textContent = "(rating)";
-        seminarTeacherP.appendChild(seminarRatingA);
+      if (seminar.teacher.rating) {
+        const clarityP = document.createElement("p");
+        clarityP.textContent = `clarity: ${seminar.teacher.rating.clarity}`;
+        seminarTeacherP.appendChild(clarityP);
+
+        if (seminar.teacher.rating.teachingQuality) {
+          const teachingQualityP = document.createElement("p");
+          teachingQualityP.textContent = `teaching quality: ${seminar.teacher.rating.teachingQuality}`;
+          seminarTeacherP.appendChild(teachingQualityP);
+        }
+
+        if (seminar.teacher.rating.respect) {
+          const respectP = document.createElement("p");
+          respectP.textContent = `respect: ${seminar.teacher.rating.respect}`;
+          seminarTeacherP.appendChild(respectP);
+        }
       }
       seminarButton.appendChild(seminarTeacherP);
 
@@ -223,9 +293,20 @@ const calculateSchedulePosition = (schedule: Schedule) => {
       seminarRegisterLinkP.appendChild(seminarRegisterLinkA);
       seminarButton.appendChild(seminarRegisterLinkP);
 
-      seminarContainer.appendChild(seminarButton);
-
       seminarButton.addEventListener("click", (event) => handleSelect(event, seminar, subject));
+
+      seminars.push({ seminarButton, seminar });
+    }
+
+    seminars.sort((a, b) => {
+      const scoreA = a.seminar.teacher.rating?.clarity ?? Infinity;
+      const scoreB = b.seminar.teacher.rating?.clarity ?? Infinity;
+
+      return scoreA - scoreB;
+    });
+
+    for (const { seminarButton } of seminars) {
+      seminarContainer.appendChild(seminarButton);
     }
 
     document.getElementById("subjects")!.appendChild(subjectDiv);

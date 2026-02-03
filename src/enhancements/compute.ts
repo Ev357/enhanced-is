@@ -42,7 +42,7 @@ const fetchSujects = async (subjectInfos: SubjectInfo[]) => {
     if (!response.ok) throw new Error(`Response status: ${response.status}`);
 
     const result = await response.text();
-    const seminars = parseSeminars(result);
+    const seminars = await parseSeminars(result);
     if (seminars instanceof Error) throw seminars;
 
     const subject: Subject = { ...subjectInfo, seminars };
@@ -57,7 +57,7 @@ const fetchSujects = async (subjectInfos: SubjectInfo[]) => {
   }
 };
 
-const parseSeminars = (html: string) => {
+const parseSeminars = async (html: string) => {
   const parser = new DOMParser();
   const pageDocumentElement = parser.parseFromString(html, "text/html").documentElement;
 
@@ -67,15 +67,19 @@ const parseSeminars = (html: string) => {
   const rows = Array.from(table.querySelectorAll("tr"));
   if (!rows) return new Error("No rows");
 
-  const seminars: Seminar[] = [];
-  for (const row of rows) {
-    const seminar = parseSeminar(row);
-    if (seminar instanceof Error) return seminar;
+  const promises = rows.map(async (row) => {
+    const seminar = await parseSeminar(row);
+    if (seminar instanceof Error) throw seminar;
 
-    seminars.push(seminar);
+    return seminar;
+  });
+
+  try {
+    return await Promise.all(promises);
+  } catch (error) {
+    if (!(error instanceof Error)) return new Error("Unknown error");
+    return error;
   }
-
-  return seminars;
 };
 
 export type Seminar = {
@@ -86,7 +90,7 @@ export type Seminar = {
   colisions?: Colision[];
 };
 
-const parseSeminar = (element: HTMLTableRowElement) => {
+const parseSeminar = async (element: HTMLTableRowElement) => {
   const seminarDiv = element.querySelector("td > div.seminar");
   if (!seminarDiv) return new Error("No seminar div");
 
@@ -96,7 +100,7 @@ const parseSeminar = (element: HTMLTableRowElement) => {
   const schedules = parseSchedule(seminarDiv);
   if (schedules instanceof Error) return schedules;
 
-  const teacher = parseTeacher(seminarDiv);
+  const teacher = await parseTeacher(seminarDiv);
   if (teacher instanceof Error) return teacher;
 
   const registerA = element.querySelector('td > font > a.okno[href^="./student"][target="_blank"]');
@@ -148,21 +152,155 @@ const parseColisions = (element: HTMLTableRowElement) => {
 export type Teacher = {
   name: string;
   link: string;
-  ratingLink?: string;
+  rating?: Rating;
 };
 
-const parseTeacher = (seminarDiv: Element) => {
+type Rating = {
+  link: string;
+  subjectDifficulty: number;
+  averageSubjectDifficulty: number;
+  clarity: number;
+  averageClarity: number;
+  preparedness: number;
+  averagePreparedness: number;
+  gradingClarity: number;
+  averageGradingClarity: number;
+  respect?: number;
+  averageRespect?: number;
+  teachingQuality?: number;
+  averageTeachingQuality?: number;
+};
+
+const parseTeacher = async (seminarDiv: Element) => {
   const teacherA = seminarDiv.querySelector("a[href^='/auth/osoba/']");
   if (!(teacherA instanceof HTMLAnchorElement)) return new Error("No teacher a element");
 
   const name = teacherA.textContent;
   const link = teacherA.href;
 
-  const ratingA = seminarDiv.querySelector("span.nedurazne > a[href^='/auth/pruzkumy/odpovedi']");
-  const ratingLink = ratingA instanceof HTMLAnchorElement ? ratingA.href : undefined;
+  const rating = await parseRating(seminarDiv);
+  if (rating instanceof Error) return rating;
 
-  const teacher: Teacher = { name, link, ratingLink };
+  const teacher: Teacher = { name, link, rating };
   return teacher;
+};
+
+const parseRating = async (seminarDiv: Element) => {
+  const ratingA = seminarDiv.querySelector("span.nedurazne > a[href^='/auth/pruzkumy/odpovedi']");
+  if (!(ratingA instanceof HTMLAnchorElement)) return;
+
+  const html = await fetchRating(ratingA.href);
+  if (html instanceof Error) return html;
+
+  const parser = new DOMParser();
+  const pageDocumentElement = parser.parseFromString(html, "text/html").documentElement;
+
+  const tables = Array.from(
+    pageDocumentElement.querySelectorAll("table.data1.table_odpovedi > tbody"),
+  );
+  if (tables.length < 2) return new Error("Not enough tables");
+
+  const difficultyTable = tables[0]!;
+  const averageSubjectDifficulty = difficultyTable.querySelector(
+    "tr:nth-child(3) > td:nth-child(3)",
+  )?.textContent;
+  const subjectDifficulty = difficultyTable.querySelector(
+    "tr:nth-child(3) > td:nth-child(4)",
+  )?.textContent;
+
+  const teacherNodes = Array.from(tables[1]!.childNodes).filter(
+    (node) => node instanceof HTMLTableRowElement,
+  );
+
+  const clarityResult = parseTableRating(
+    teacherNodes,
+    "Výklad vyučující(ho) byl vždy srozumitelný a přehledný.",
+  );
+  if (clarityResult instanceof Error) return clarityResult;
+
+  const preparednessResult = parseTableRating(
+    teacherNodes,
+    "Vyučující přicházel(a) do výuky vždy dobře připraven(a).",
+  );
+  if (preparednessResult instanceof Error) return preparednessResult;
+
+  const gradingClarityResult = parseTableRating(
+    teacherNodes,
+    "Vyučující jasně sdělil(a), jaké znalosti a dovednosti budou hodnoceny.",
+  );
+  if (gradingClarityResult instanceof Error) return gradingClarityResult;
+
+  const respectResult = parseTableRating(
+    teacherNodes,
+    "Vyučující se studujícími vždy komunikoval(a) a jednal(a) s respektem.",
+  );
+  if (respectResult instanceof Error) return respectResult;
+
+  const teachingQualityResult = parseTableRating(
+    teacherNodes,
+    "Učitel/ka je výborný/á pedagog/pedagožka a velmi dobře učí.",
+  );
+  if (teachingQualityResult instanceof Error) return teachingQualityResult;
+
+  if (
+    !subjectDifficulty ||
+    !averageSubjectDifficulty ||
+    !clarityResult ||
+    !preparednessResult ||
+    !gradingClarityResult
+  )
+    return new Error("Not enough ratings");
+
+  const [clarity, averageClarity] = clarityResult;
+  const [preparedness, averagePreparedness] = preparednessResult;
+  const [gradingClarity, averageGradingClarity] = gradingClarityResult;
+  const [respect, averageRespect] = respectResult ?? [undefined, undefined];
+  const [teachingQuality, averageTeachingQuality] = teachingQualityResult ?? [undefined, undefined];
+
+  const rating: Rating = {
+    link: ratingA.href,
+    subjectDifficulty: Number(subjectDifficulty),
+    averageSubjectDifficulty: Number(averageSubjectDifficulty),
+    clarity,
+    averageClarity,
+    preparedness,
+    averagePreparedness,
+    gradingClarity,
+    averageGradingClarity,
+    respect,
+    averageRespect,
+    teachingQuality,
+    averageTeachingQuality,
+  };
+  return rating;
+};
+
+const parseTableRating = (nodes: HTMLTableRowElement[], key: string) => {
+  const tr = nodes.find((tr) =>
+    Array.from(tr.childNodes).some(
+      (td) => td instanceof HTMLTableCellElement && td.title.includes(key),
+    ),
+  );
+  if (!tr) return;
+
+  const trChilds = Array.from(tr.childNodes).filter((node) => node instanceof HTMLTableCellElement);
+  const rating = trChilds[3]?.textContent;
+  const average = trChilds[2]?.textContent;
+  if (!rating || !average) return new Error("No average or rating");
+
+  return [Number(rating), Number(average)] as const;
+};
+
+const fetchRating = async (link: string) => {
+  try {
+    const response = await fetch(link);
+    if (!response.ok) return new Error(`Response status: ${response.status}`);
+
+    return await response.text();
+  } catch (error) {
+    if (!(error instanceof Error)) return new Error("Unknown error");
+    return error;
+  }
 };
 
 type WeekDay = "Mon" | "Tue" | "Wed" | "Thu" | "Fri";
