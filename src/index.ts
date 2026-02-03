@@ -196,6 +196,92 @@ const computeRatings = (subject: Subject) => {
   return computedRating;
 };
 
+const addedCustoms = {
+  add: async (custom: Custom) => {
+    const result = await browser.storage.local.get("addedCustoms");
+    if (!("addedCustoms" in result)) {
+      await browser.storage.local.set({ addedCustoms: [custom] });
+      return;
+    }
+
+    /* @ts-expect-error */
+    const unfilteredAddedCustoms: Custom[] = result.addedCustoms;
+    const addedCustoms = unfilteredAddedCustoms.filter(
+      (addedCustom) => addedCustom.id !== custom.id,
+    );
+    addedCustoms.push(custom);
+
+    await browser.storage.local.set({ addedCustoms });
+  },
+  delete: async (custom: Custom) => {
+    const result = await browser.storage.local.get("addedCustoms");
+    if (!("addedCustoms" in result)) {
+      return false;
+    }
+
+    /* @ts-expect-error */
+    const addedCustoms: Custom[] = result.addedCustoms;
+    const index = addedCustoms.findIndex((addedCustom) => addedCustom.id === custom.id);
+    if (index === -1) {
+      return false;
+    }
+    addedCustoms.splice(index, 1);
+    await browser.storage.local.set({ addedCustoms });
+
+    return true;
+  },
+  entries: async () => {
+    const result = await browser.storage.local.get("addedCustoms");
+    if (!("addedCustoms" in result)) {
+      return [];
+    }
+
+    /* @ts-expect-error */
+    const addedCustoms: Custom[] = result.addedCustoms;
+    return addedCustoms;
+  },
+};
+
+type Custom = {
+  id: string;
+  title: string;
+  from: string;
+  to: string;
+};
+const addCustom = async (custom: Custom) => {
+  addCleanCustom(custom);
+  await addedCustoms.add(custom);
+};
+
+const addCleanCustom = (custom: Custom) => {
+  const customContainerDiv = document.createElement("div");
+  customContainerDiv.classList = "flex items-center justify-between rounded border p-2";
+
+  const dataDiv = document.createElement("div");
+  dataDiv.classList = "flex flex-col";
+
+  const titleP = document.createElement("p");
+  titleP.textContent = custom.title;
+  dataDiv.appendChild(titleP);
+
+  const scheduleP = document.createElement("p");
+  scheduleP.textContent = `${custom.from} - ${custom.to}`;
+  dataDiv.appendChild(scheduleP);
+
+  customContainerDiv.appendChild(dataDiv);
+
+  const removeButton = document.createElement("button");
+  removeButton.classList = "rounded border px-2 py-1";
+  removeButton.textContent = "Remove";
+  removeButton.addEventListener("click", async () => {
+    await addedCustoms.delete(custom);
+    customContainerDiv.remove();
+  });
+  customContainerDiv.appendChild(removeButton);
+
+  document.getElementById("customs")!.appendChild(customContainerDiv);
+};
+
 (async () => {
   const data = await browser.storage.local.get("subjects");
   /* @ts-expect-error */
@@ -316,9 +402,36 @@ const computeRatings = (subject: Subject) => {
     document.getElementById("subjects")!.appendChild(subjectDiv);
   }
 
+  /* @ts-expect-error */
+  const customForm: HTMLFormElement = document.getElementById("custom-form")!;
+
+  customForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    /* @ts-expect-error */
+    const formValues: {
+      title: string;
+      from: string;
+      to: string;
+    } = Object.fromEntries(new FormData(customForm).entries());
+
+    const custom: Custom = {
+      id: crypto.randomUUID(),
+      ...formValues,
+    };
+
+    await addCustom(custom);
+
+    customForm.reset();
+  });
+
   for (const [subject, seminar] of await addedSubjects.entries()) {
     addSubjectToCalendar(subject, seminar);
     const selectedSeminar = document.getElementById(seminar.id)!;
     selectedSeminar.dataset.selected = "true";
+  }
+
+  for (const custom of await addedCustoms.entries()) {
+    addCleanCustom(custom);
   }
 })();
