@@ -1,7 +1,7 @@
 {
   "name": "Enhanced IS",
   "description": "Extension that enhances MUNI IS",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "manifest_version": 3,
   "action": {
     "default_icon": "icon.png"
@@ -21,7 +21,8 @@
     }
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
   },
   "browser_specific_settings": {
     "gecko": {
