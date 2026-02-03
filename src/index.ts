@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import type { Schedule, Seminar, Subject } from "./enhancements/compute";
+import type { Schedule, Seminar, Subject, WeekDay } from "./enhancements/compute";
 
 const addedSubjects = {
   get: async (subject: Subject) => {
@@ -245,6 +245,7 @@ const addedCustoms = {
 type Custom = {
   id: string;
   title: string;
+  day: WeekDay;
   from: string;
   to: string;
 };
@@ -265,7 +266,7 @@ const addCleanCustom = (custom: Custom) => {
   dataDiv.appendChild(titleP);
 
   const scheduleP = document.createElement("p");
-  scheduleP.textContent = `${custom.from} - ${custom.to}`;
+  scheduleP.textContent = `${custom.day} ${custom.from} - ${custom.to}`;
   dataDiv.appendChild(scheduleP);
 
   customContainerDiv.appendChild(dataDiv);
@@ -411,9 +412,12 @@ const addCleanCustom = (custom: Custom) => {
     /* @ts-expect-error */
     const formValues: {
       title: string;
+      day: WeekDay;
       from: string;
       to: string;
     } = Object.fromEntries(new FormData(customForm).entries());
+
+    if (!["Mon", "Tue", "Wed", "Thu", "Fri"].includes(formValues.day)) return;
 
     const custom: Custom = {
       id: crypto.randomUUID(),

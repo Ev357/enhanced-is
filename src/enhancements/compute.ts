@@ -303,7 +303,7 @@ const fetchRating = async (link: string) => {
   }
 };
 
-type WeekDay = "Mon" | "Tue" | "Wed" | "Thu" | "Fri";
+export type WeekDay = "Mon" | "Tue" | "Wed" | "Thu" | "Fri";
 
 export type Schedule = {
   day: WeekDay;
