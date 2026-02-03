@@ -19,7 +19,7 @@ jobs:
 
       - name: Build
         run: |
-          bun install --frozen-lockfile --ignore-scripts
+          bun install --frozen-lockfile
           bun run build
           mkdir result
           cd dist
