@@ -74,6 +74,7 @@
 }
 
 @theme inline {
+  --font-geist: "Geist", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -112,11 +113,16 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+@font-face {
+  font-family: Geist;
+  src: url("./fonts/Geist.woff2") format("woff2");
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-geist! text-base!;
   }
 }

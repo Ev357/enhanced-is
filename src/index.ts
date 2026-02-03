@@ -230,14 +230,17 @@ const addSubjectToCalendar = (subject: Subject, seminar: Seminar) => {
     seminarDiv.classList = "h-full rounded border bg-gray-900 p-0.5";
 
     const seminarTitleP = document.createElement("p");
+    seminarTitleP.classList = "text-sm";
     seminarTitleP.textContent = subject.title;
     seminarDiv.appendChild(seminarTitleP);
 
     const seminarScheduleP = document.createElement("p");
+    seminarScheduleP.classList = "text-sm";
     seminarScheduleP.textContent = `${schedule.day} ${schedule.startTime} - ${schedule.endTime}`;
     seminarDiv.appendChild(seminarScheduleP);
 
     const seminarTeacherP = document.createElement("p");
+    seminarTeacherP.classList = "text-sm";
     seminarTeacherP.textContent = seminar.teacher.name;
     seminarDiv.appendChild(seminarTeacherP);
 
@@ -391,10 +394,12 @@ const addCleanCustom = (custom: Custom) => {
   customCalendarDiv.classList = "h-full rounded border bg-gray-900 p-0.5";
 
   const customTitleP = document.createElement("p");
+  customTitleP.classList = "text-sm";
   customTitleP.textContent = custom.title;
   customCalendarDiv.appendChild(customTitleP);
 
   const customScheduleP = document.createElement("p");
+  customScheduleP.classList = "text-sm";
   customScheduleP.textContent = `${custom.schedule.day} ${custom.schedule.startTime} - ${custom.schedule.endTime}`;
   customCalendarDiv.appendChild(customScheduleP);
 
@@ -409,17 +414,19 @@ const addCleanCustom = (custom: Custom) => {
   dataDiv.classList = "flex flex-col";
 
   const titleP = document.createElement("p");
+  titleP.classList = "text-sm";
   titleP.textContent = custom.title;
   dataDiv.appendChild(titleP);
 
   const scheduleP = document.createElement("p");
+  scheduleP.classList = "text-sm";
   scheduleP.textContent = `${custom.schedule.day} ${custom.schedule.startTime} - ${custom.schedule.endTime}`;
   dataDiv.appendChild(scheduleP);
 
   customContainerDiv.appendChild(dataDiv);
 
   const removeButton = document.createElement("button");
-  removeButton.classList = "rounded border px-2 py-1";
+  removeButton.classList = "rounded border px-2 py-1 text-sm";
   removeButton.textContent = "Remove";
   removeButton.addEventListener("click", async () => {
     await addedCustoms.delete(custom);
@@ -456,7 +463,7 @@ const addCleanCustom = (custom: Custom) => {
     subjectDiv.classList = "flex w-80 flex-col rounded border";
 
     const header = document.createElement("div");
-    header.classList = "flex h-20 flex-col p-2";
+    header.classList = "flex h-32 flex-col p-2";
 
     const subjectTitle = document.createElement("p");
     subjectTitle.classList = "text-center";
@@ -466,11 +473,13 @@ const addCleanCustom = (custom: Custom) => {
     const rating = computeRatings(subject);
     if (rating.averageClarity) {
       const clarityP = document.createElement("p");
+      clarityP.classList = "text-sm";
       clarityP.textContent = `average clarity: ${rating.averageClarity}`;
       header.appendChild(clarityP);
     }
     if (rating.averageSubjectDifficulty) {
       const subjectDifficultyP = document.createElement("p");
+      subjectDifficultyP.classList = "text-sm";
       subjectDifficultyP.textContent = `average subject difficulty: ${rating.averageSubjectDifficulty}`;
       header.appendChild(subjectDifficultyP);
     }
@@ -489,7 +498,7 @@ const addCleanCustom = (custom: Custom) => {
     for (const seminar of subject.seminars) {
       const seminarButton = document.createElement("button");
       seminarButton.classList =
-        "flex h-48 flex-col rounded border p-2 text-start disabled:opacity-50 disabled:data-[collision=true]:bg-red-400/50 data-[select-collision=true]:bg-blue-400/50 data-[selected=true]:bg-gray-500";
+        "flex h-68 flex-col rounded border p-2 text-start disabled:opacity-50 disabled:data-[collision=true]:bg-red-400/50 data-[select-collision=true]:bg-blue-400/50 data-[selected=true]:bg-gray-500";
       seminarButton.id = seminar.id;
       seminarButton.dataset.selected = "false";
 
@@ -549,6 +558,7 @@ const addCleanCustom = (custom: Custom) => {
 
         for (const collision of seminar.collisions) {
           const collisionP = document.createElement("p");
+          collisionP.classList = "text-sm";
           collisionP.textContent = collision.name;
           collisionsDiv.appendChild(collisionP);
         }
