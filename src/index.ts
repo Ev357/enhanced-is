@@ -347,7 +347,7 @@ const addCleanCustom = (custom: Custom) => {
     for (const seminar of subject.seminars) {
       const seminarButton = document.createElement("button");
       seminarButton.classList =
-        "flex h-48 flex-col rounded border p-2 text-start data-[selected=true]:bg-gray-500";
+        "flex h-48 flex-col rounded border p-2 text-start disabled:bg-red-400/50 disabled:opacity-50 data-[selected=true]:bg-gray-500";
       seminarButton.id = seminar.id;
       seminarButton.dataset.selected = "false";
 
@@ -396,6 +396,23 @@ const addCleanCustom = (custom: Custom) => {
         }
       }
       seminarButton.appendChild(seminarTeacherP);
+
+      if (seminar.colisions) {
+        const colisionsDiv = document.createElement("div");
+        colisionsDiv.classList = "flex flex-col";
+
+        const colisionsTitleP = document.createElement("p");
+        colisionsTitleP.textContent = "colissions:";
+        colisionsDiv.appendChild(colisionsTitleP);
+
+        for (const colision of seminar.colisions) {
+          const colisionP = document.createElement("p");
+          colisionP.textContent = colision.name;
+          colisionsDiv.appendChild(colisionP);
+        }
+        seminarButton.appendChild(colisionsDiv);
+        seminarButton.disabled = true;
+      }
 
       const seminarRegisterLinkP = document.createElement("p");
       const seminarRegisterLinkA = document.createElement("a");
