@@ -87,7 +87,7 @@ export type Seminar = {
   schedules: Schedule[];
   teacher: Teacher;
   registerLink: string;
-  colisions?: Colision[];
+  collisions?: Collision[];
 };
 
 const parseSeminar = async (element: HTMLTableRowElement) => {
@@ -108,45 +108,45 @@ const parseSeminar = async (element: HTMLTableRowElement) => {
 
   const registerLink = registerA.href;
 
-  const colisions = parseColisions(element);
-  if (colisions instanceof Error) return colisions;
+  const collisions = parseCollisions(element);
+  if (collisions instanceof Error) return collisions;
 
   const seminar: Seminar = {
     id,
     schedules,
     teacher,
     registerLink,
-    colisions,
+    collisions: collisions,
   };
   return seminar;
 };
 
-export type Colision = {
+export type Collision = {
   name: string;
   schedule: Schedule;
 };
 
-const parseColisions = (element: HTMLTableRowElement) => {
+const parseCollisions = (element: HTMLTableRowElement) => {
   const h6s = Array.from(element.querySelectorAll("td > h6"));
   if (!h6s) return;
-  const colisionTitle = h6s.find((h6) => h6.textContent === "Kolize v rozvrhu");
-  if (!colisionTitle) return;
-  const colisionUl = colisionTitle.nextElementSibling;
-  if (!colisionUl) return new Error("No colision ul");
+  const collisionTitle = h6s.find((h6) => h6.textContent === "Kolize v rozvrhu");
+  if (!collisionTitle) return;
+  const collisionUl = collisionTitle.nextElementSibling;
+  if (!collisionUl) return new Error("No collision ul");
 
-  const colisionLis = Array.from(colisionUl.querySelectorAll("li"));
-  const colisions: Colision[] = [];
-  for (const colisionLi of colisionLis) {
-    const name = colisionLi.childNodes[0]?.textContent;
+  const collisionLis = Array.from(collisionUl.querySelectorAll("li"));
+  const collisions: Collision[] = [];
+  for (const collisionLi of collisionLis) {
+    const name = collisionLi.childNodes[0]?.textContent;
     if (!name) return new Error("No name");
 
     const schedule = parseScheduleString(name);
     if (schedule instanceof Error) return schedule;
     if (!schedule) return new Error("No schedule");
 
-    colisions.push({ name, schedule });
+    collisions.push({ name, schedule });
   }
-  return colisions;
+  return collisions;
 };
 
 export type Teacher = {

@@ -66,8 +66,9 @@ const handleSelect = async (event: PointerEvent, seminar: Seminar, subject: Subj
   const addedSeminar = await addedSubjects.get(subject);
 
   if (!addedSeminar) {
-    addSubject(subject, seminar);
+    await addSubject(subject, seminar);
     currentTarget.dataset.selected = "true";
+    await checkCollisions();
     return;
   }
 
@@ -75,6 +76,7 @@ const handleSelect = async (event: PointerEvent, seminar: Seminar, subject: Subj
 
   if (seminar.id === addedSeminar.id) {
     currentTarget.dataset.selected = "false";
+    await checkCollisions();
     return;
   }
 
@@ -82,6 +84,130 @@ const handleSelect = async (event: PointerEvent, seminar: Seminar, subject: Subj
   previousSelectedSeminar.dataset.selected = "false";
   await addSubject(subject, seminar);
   currentTarget.dataset.selected = "true";
+  await checkCollisions();
+};
+
+const checkCollisions = async () => {
+  const result = await browser.storage.local.get("subjects");
+  if (!("subjects" in result)) return;
+
+  const selectedSubjects = await addedSubjects.entries();
+  const selectedSeminars = selectedSubjects.map(([_, seminar]) => seminar);
+
+  /* @ts-expect-error */
+  const unfilteredSubjects: Subject[] = result.subjects;
+  const unselectedSeminars = unfilteredSubjects.reduce<Seminar[]>((unselectedSeminars, subject) => {
+    for (const seminar of subject.seminars) {
+      if (!selectedSeminars.some((selectedSeminar) => selectedSeminar.id === seminar.id)) {
+        unselectedSeminars.push(seminar);
+      }
+    }
+    return unselectedSeminars;
+  }, []);
+
+  const customs = await addedCustoms.entries();
+
+  const { collidingSeminars, notCollidingSeminars } = getCollidingSeminars(
+    unselectedSeminars,
+    selectedSeminars,
+    customs,
+  );
+  for (const collidingSeminar of collidingSeminars) {
+    /* @ts-expect-error */
+    const seminarButton: HTMLButtonElement = document.getElementById(collidingSeminar.id)!;
+    seminarButton.dataset.selectCollision = "true";
+    seminarButton.disabled = true;
+  }
+
+  for (const notCollidingSeminar of notCollidingSeminars) {
+    /* @ts-expect-error */
+    const seminarButton: HTMLButtonElement = document.getElementById(notCollidingSeminar.id)!;
+    seminarButton.dataset.selectCollision = "false";
+    if (!notCollidingSeminar.collisions) {
+      seminarButton.disabled = false;
+    }
+  }
+};
+
+const getCollidingSeminars = (
+  unselectedSeminars: Seminar[],
+  selectedSeminars: Seminar[],
+  customs: Custom[],
+) => {
+  const collidingSeminars: Seminar[] = [];
+  const notCollidingSeminars: Seminar[] = [];
+  for (const unselectedSeminar of unselectedSeminars) {
+    if (
+      isSeminarCollidingWith(unselectedSeminar, selectedSeminars) ||
+      isSeminarCollidingWithCustoms(unselectedSeminar, customs)
+    ) {
+      collidingSeminars.push(unselectedSeminar);
+      continue;
+    }
+    notCollidingSeminars.push(unselectedSeminar);
+  }
+  return { collidingSeminars, notCollidingSeminars };
+};
+
+const isSeminarCollidingWithCustoms = (seminar: Seminar, customs: Custom[]) => {
+  for (const custom of customs) {
+    if (seminar.schedules.some((schedule) => areSchedulesColliding(schedule, custom.schedule))) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const isSeminarCollidingWith = (seminar: Seminar, seminars: Seminar[]) => {
+  for (const seminarsSeminar of seminars) {
+    if (areSeminarsColliding(seminar, seminarsSeminar)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const areSeminarsColliding = (seminarA: Seminar, seminarB: Seminar) => {
+  for (const seminarSchedule of seminarA.schedules) {
+    for (const seminarBSchedule of seminarB.schedules) {
+      if (areSchedulesColliding(seminarSchedule, seminarBSchedule)) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+const areSchedulesColliding = (scheduleA: Schedule, scheduleB: Schedule) => {
+  if (scheduleA.day != scheduleB.day) {
+    return false;
+  }
+
+  const [startHourStringA, startMinuteStringA] = scheduleA.startTime.split(":");
+  const [endHourStringA, endMinuteStringA] = scheduleA.endTime.split(":");
+
+  const [startHourStringB, startMinuteStringB] = scheduleB.startTime.split(":");
+  const [endHourStringB, endMinuteStringB] = scheduleB.endTime.split(":");
+
+  if (
+    !startHourStringA ||
+    !startMinuteStringA ||
+    !endHourStringA ||
+    !endMinuteStringA ||
+    !startHourStringB ||
+    !startMinuteStringB ||
+    !endHourStringB ||
+    !endMinuteStringB
+  )
+    throw new Error("Invalid schedule");
+
+  const startA = Number(startHourStringA) * 60 + Number(startMinuteStringA);
+  const endA = Number(endHourStringA) * 60 + Number(endMinuteStringA);
+
+  const startB = Number(startHourStringB) * 60 + Number(startMinuteStringB);
+  const endB = Number(endHourStringB) * 60 + Number(endMinuteStringB);
+
+  return startA < endB && endA > startB;
 };
 
 const addSubject = async (subject: Subject, seminar: Seminar) => {
@@ -299,6 +425,7 @@ const addCleanCustom = (custom: Custom) => {
     await addedCustoms.delete(custom);
     customCalendarContainerDiv.remove();
     customContainerDiv.remove();
+    await checkCollisions();
   });
   customContainerDiv.appendChild(removeButton);
 
@@ -347,7 +474,7 @@ const addCleanCustom = (custom: Custom) => {
     for (const seminar of subject.seminars) {
       const seminarButton = document.createElement("button");
       seminarButton.classList =
-        "flex h-48 flex-col rounded border p-2 text-start disabled:bg-red-400/50 disabled:opacity-50 data-[selected=true]:bg-gray-500";
+        "flex h-48 flex-col rounded border p-2 text-start disabled:opacity-50 disabled:data-[collision=true]:bg-red-400/50 data-[select-collision=true]:bg-blue-400/50 data-[selected=true]:bg-gray-500";
       seminarButton.id = seminar.id;
       seminarButton.dataset.selected = "false";
 
@@ -397,20 +524,21 @@ const addCleanCustom = (custom: Custom) => {
       }
       seminarButton.appendChild(seminarTeacherP);
 
-      if (seminar.colisions) {
-        const colisionsDiv = document.createElement("div");
-        colisionsDiv.classList = "flex flex-col";
+      if (seminar.collisions) {
+        const collisionsDiv = document.createElement("div");
+        collisionsDiv.classList = "flex flex-col";
 
-        const colisionsTitleP = document.createElement("p");
-        colisionsTitleP.textContent = "colissions:";
-        colisionsDiv.appendChild(colisionsTitleP);
+        const collisionsTitleP = document.createElement("p");
+        collisionsTitleP.textContent = "collisions:";
+        collisionsDiv.appendChild(collisionsTitleP);
 
-        for (const colision of seminar.colisions) {
-          const colisionP = document.createElement("p");
-          colisionP.textContent = colision.name;
-          colisionsDiv.appendChild(colisionP);
+        for (const collision of seminar.collisions) {
+          const collisionP = document.createElement("p");
+          collisionP.textContent = collision.name;
+          collisionsDiv.appendChild(collisionP);
         }
-        seminarButton.appendChild(colisionsDiv);
+        seminarButton.appendChild(collisionsDiv);
+        seminarButton.dataset.collision = "true";
         seminarButton.disabled = true;
       }
 
@@ -467,6 +595,7 @@ const addCleanCustom = (custom: Custom) => {
     };
 
     await addCustom(custom);
+    await checkCollisions();
 
     customForm.reset();
   });
@@ -480,4 +609,6 @@ const addCleanCustom = (custom: Custom) => {
   for (const custom of await addedCustoms.entries()) {
     addCleanCustom(custom);
   }
+
+  await checkCollisions();
 })();
