@@ -92,7 +92,7 @@ const addSubject = async (subject: Subject, seminar: Seminar) => {
 const addSubjectToCalendar = (subject: Subject, seminar: Seminar) => {
   for (const [index, schedule] of seminar.schedules.entries()) {
     const seminarContainerDiv = document.createElement("div");
-    seminarContainerDiv.classList = "absolute p-0.5";
+    seminarContainerDiv.classList = "absolute w-full p-0.5";
     seminarContainerDiv.id = `${subject.id}-${index}`;
 
     const { offset, duration } = calculateSchedulePosition(schedule);
@@ -245,9 +245,7 @@ const addedCustoms = {
 type Custom = {
   id: string;
   title: string;
-  day: WeekDay;
-  from: string;
-  to: string;
+  schedule: Schedule;
 };
 const addCustom = async (custom: Custom) => {
   addCleanCustom(custom);
@@ -255,6 +253,29 @@ const addCustom = async (custom: Custom) => {
 };
 
 const addCleanCustom = (custom: Custom) => {
+  const customCalendarContainerDiv = document.createElement("div");
+  customCalendarContainerDiv.classList = "absolute w-full p-0.5";
+  customCalendarContainerDiv.id = custom.id;
+
+  const { offset, duration } = calculateSchedulePosition(custom.schedule);
+  customCalendarContainerDiv.style.top = `${offset}px`;
+  customCalendarContainerDiv.style.height = `${duration}px`;
+
+  const customCalendarDiv = document.createElement("div");
+  customCalendarDiv.classList = "h-full rounded border bg-gray-900 p-0.5";
+
+  const customTitleP = document.createElement("p");
+  customTitleP.textContent = custom.title;
+  customCalendarDiv.appendChild(customTitleP);
+
+  const customScheduleP = document.createElement("p");
+  customScheduleP.textContent = `${custom.schedule.day} ${custom.schedule.startTime} - ${custom.schedule.endTime}`;
+  customCalendarDiv.appendChild(customScheduleP);
+
+  customCalendarContainerDiv.appendChild(customCalendarDiv);
+
+  document.getElementById(custom.schedule.day)!.appendChild(customCalendarContainerDiv);
+
   const customContainerDiv = document.createElement("div");
   customContainerDiv.classList = "flex items-center justify-between rounded border p-2";
 
@@ -266,7 +287,7 @@ const addCleanCustom = (custom: Custom) => {
   dataDiv.appendChild(titleP);
 
   const scheduleP = document.createElement("p");
-  scheduleP.textContent = `${custom.day} ${custom.from} - ${custom.to}`;
+  scheduleP.textContent = `${custom.schedule.day} ${custom.schedule.startTime} - ${custom.schedule.endTime}`;
   dataDiv.appendChild(scheduleP);
 
   customContainerDiv.appendChild(dataDiv);
@@ -276,6 +297,7 @@ const addCleanCustom = (custom: Custom) => {
   removeButton.textContent = "Remove";
   removeButton.addEventListener("click", async () => {
     await addedCustoms.delete(custom);
+    customCalendarContainerDiv.remove();
     customContainerDiv.remove();
   });
   customContainerDiv.appendChild(removeButton);
@@ -420,8 +442,13 @@ const addCleanCustom = (custom: Custom) => {
     if (!["Mon", "Tue", "Wed", "Thu", "Fri"].includes(formValues.day)) return;
 
     const custom: Custom = {
+      title: formValues.title,
       id: crypto.randomUUID(),
-      ...formValues,
+      schedule: {
+        day: formValues.day,
+        startTime: formValues.from,
+        endTime: formValues.to,
+      },
     };
 
     await addCustom(custom);
