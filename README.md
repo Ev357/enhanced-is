@@ -25,7 +25,7 @@ Adds a button that can opens the direct PDF in a new tab for subjects **IB000** 
 # Installation
 ## Chromium
 1. Download the latest [release](https://github.com/Ev357/enhanced-is/releases/latest) `.zip` file.
-2. Go to [chrome://extensions](chrome://extensions).
+2. Go to `chrome://extensions`.
 3. Enable **Developer mode**.
 4. Drag and drop the **zip** file into the page.
 
@@ -33,9 +33,9 @@ Adds a button that can opens the direct PDF in a new tab for subjects **IB000** 
 > [!NOTE]
 > You must use **[Firefox Developer Edition](https://www.firefox.com/en-US/channel/desktop/developer)**, **[Nightly](https://www.firefox.com/en-US/channel/desktop)**, or **[ESR](https://www.firefox.com/en-US/browsers/enterprise)** for a permanent installation. I can add the extension to the official Firefox Add-ons and Chrome Web Store in the future but for now I prefer a clear local installation.
 1. Download the latest [release](https://github.com/Ev357/enhanced-is/releases/latest) `.zip` file.
-2. Go to [about:config](about:config).
+2. Go to `about:config`.
 3. Set `xpinstall.signatures.required` to `false`.
-4. Go to [about:addons](about:addons)
+4. Go to `about:addons`.
 5. Click the **gear** icon and select **Install Add-on From File...**.
 6. Select the **zip** file.
 
