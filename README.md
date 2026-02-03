@@ -22,6 +22,12 @@ Adds a button that can opens the direct PDF in a new tab for subjects **IB000** 
 > [!NOTE]
 > The calendar is not perfect and should not be considered 100% accurate. For example, it does not take into account seminars that are once per two weeks etc.
 
+### Usage
+Import the data by clicking the **Load data** button on the [seminars page](https://is.muni.cz/auth/seminare/student).
+
+> [!WARNING]
+> Keep in mind that this extension scrapes data from IS and it's making multiple requests. Please use the button responsibly and avoid rapid repeated clicks. You can read more about the limits [here](https://is.muni.cz/auth/system/antiscraping).
+
 # Installation
 ## Chromium
 1. Download the latest [release](https://github.com/Ev357/enhanced-is/releases/latest) `.zip` file.
