@@ -439,8 +439,6 @@ const addCleanCustom = (custom: Custom) => {
       to: string;
     } = Object.fromEntries(new FormData(customForm).entries());
 
-    if (!["Mon", "Tue", "Wed", "Thu", "Fri"].includes(formValues.day)) return;
-
     const custom: Custom = {
       title: formValues.title,
       id: crypto.randomUUID(),

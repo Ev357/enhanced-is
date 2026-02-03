@@ -117,6 +117,7 @@
               placeholder="Weekday"
               name="day"
               required
+              pattern="Mon|Tue|Wed|Thu|Fri"
             />
             <input
               type="text"
@@ -124,6 +125,7 @@
               placeholder="From"
               name="from"
               required
+              pattern="\d\d?:\d\d?"
             />
             <input
               type="text"
@@ -131,6 +133,7 @@
               placeholder="To"
               name="to"
               required
+              pattern="\d\d?:\d\d?"
             />
             <button type="submit" class="rounded border">Add</button>
           </form>
