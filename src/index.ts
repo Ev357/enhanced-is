@@ -434,8 +434,9 @@ const addCleanCustom = (custom: Custom) => {
 
 (async () => {
   const data = await browser.storage.local.get("subjects");
+
   /* @ts-expect-error */
-  const subjects: Subject[] = data.subjects;
+  const subjects: Subject[] = data.subjects ?? [];
   for (const subject of subjects) {
     const subjectDiv = document.createElement("div");
     subjectDiv.classList = "flex w-80 flex-col rounded border";
