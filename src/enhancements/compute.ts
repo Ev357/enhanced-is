@@ -24,7 +24,7 @@ export const compute = async () => {
     if (subjects instanceof Error) throw subjects;
 
     await browser.storage.local.set({ subjects });
-    const url = browser.runtime.getURL("page.html");
+    const url = browser.runtime.getURL("index.html");
     window.open(url, "_blank");
   });
 

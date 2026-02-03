@@ -12,7 +12,7 @@ await Bun.build({
 });
 
 await Bun.build({
-  entrypoints: ["./src/page.html"],
+  entrypoints: ["./src/index.html"],
   outdir: "./dist",
   minify: true,
   plugins: [tailwindcss],
