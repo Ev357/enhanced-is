@@ -441,7 +441,7 @@ const addCleanCustom = (custom: Custom) => {
 
 (async () => {
   const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  const themeHandler = (event: Pick<MediaQueryListEvent, "matches">) => {
+  const themeHandler = (event: MediaQueryListEvent | MediaQueryList) => {
     if (event.matches) {
       document.documentElement.classList.add("dark");
       document.documentElement.style.colorScheme = "dark";
