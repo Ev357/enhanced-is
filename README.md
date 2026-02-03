@@ -1,11 +1,13 @@
 # Enhanced IS
 A web extension that enhances [IS](https://is.muni.cz).
 
+This extension improves some aspects of the system that I personally find frustrating. While this is primarily a personal tool, feel free to open an issue if you encounter any bugs or have feature requests.
+
 # Features
 ## PDF button
 ![PDF button](./assets/pdf-button.png)
 
-Adds a button that can opens the direct PDF in a new tab for subjects IB000 and PB154.
+Adds a button that can opens the direct PDF in a new tab for subjects **IB000** and **PB154**.
 
 ## Seminar overview
 ![calendar](./assets/calendar.png)
