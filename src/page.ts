@@ -270,6 +270,10 @@ const computeRatings = (subject: Subject) => {
         clarityP.textContent = `clarity: ${seminar.teacher.rating.clarity}`;
         seminarTeacherP.appendChild(clarityP);
 
+        const difficultyP = document.createElement("p");
+        difficultyP.textContent = `subject difficulty: ${seminar.teacher.rating.subjectDifficulty}`;
+        seminarTeacherP.appendChild(difficultyP);
+
         if (seminar.teacher.rating.teachingQuality) {
           const teachingQualityP = document.createElement("p");
           teachingQualityP.textContent = `teaching quality: ${seminar.teacher.rating.teachingQuality}`;
