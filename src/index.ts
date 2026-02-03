@@ -433,6 +433,20 @@ const addCleanCustom = (custom: Custom) => {
 };
 
 (async () => {
+  const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  const themeHandler = (event: Pick<MediaQueryListEvent, "matches">) => {
+    if (event.matches) {
+      document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
+      return;
+    }
+
+    document.documentElement.classList.remove("dark");
+    document.documentElement.style.colorScheme = "light";
+  };
+  darkModeQuery.addEventListener("change", themeHandler);
+  themeHandler(darkModeQuery);
+
   const data = await browser.storage.local.get("subjects");
 
   /* @ts-expect-error */
@@ -464,7 +478,7 @@ const addCleanCustom = (custom: Custom) => {
     subjectDiv.appendChild(header);
 
     const subjectDivider = document.createElement("div");
-    subjectDivider.classList = "h-px w-full bg-white";
+    subjectDivider.classList = "h-px w-full bg-border";
     subjectDiv.appendChild(subjectDivider);
 
     const seminarContainer = document.createElement("div");
