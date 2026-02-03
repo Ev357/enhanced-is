@@ -227,7 +227,7 @@ const addSubjectToCalendar = (subject: Subject, seminar: Seminar) => {
     seminarContainerDiv.style.height = `${duration}px`;
 
     const seminarDiv = document.createElement("div");
-    seminarDiv.classList = "h-full rounded border bg-gray-900 p-0.5";
+    seminarDiv.classList = "h-full overflow-y-auto rounded border bg-gray-900 p-0.5";
 
     const seminarTitleP = document.createElement("p");
     seminarTitleP.classList = "text-sm";
@@ -391,7 +391,7 @@ const addCleanCustom = (custom: Custom) => {
   customCalendarContainerDiv.style.height = `${duration}px`;
 
   const customCalendarDiv = document.createElement("div");
-  customCalendarDiv.classList = "h-full rounded border bg-gray-900 p-0.5";
+  customCalendarDiv.classList = "h-full overflow-y-auto rounded border bg-gray-900 p-0.5";
 
   const customTitleP = document.createElement("p");
   customTitleP.classList = "text-sm";
@@ -498,7 +498,7 @@ const addCleanCustom = (custom: Custom) => {
     for (const seminar of subject.seminars) {
       const seminarButton = document.createElement("button");
       seminarButton.classList =
-        "flex h-68 flex-col rounded border p-2 text-start disabled:opacity-50 disabled:data-[collision=true]:bg-red-400/50 data-[select-collision=true]:bg-blue-400/50 data-[selected=true]:bg-gray-500";
+        "flex h-64 flex-col overflow-y-auto rounded border p-2 text-start disabled:opacity-50 disabled:data-[collision=true]:bg-red-400/50 data-[select-collision=true]:bg-blue-400/50 data-[selected=true]:bg-gray-500";
       seminarButton.id = seminar.id;
       seminarButton.dataset.selected = "false";
 
@@ -558,7 +558,6 @@ const addCleanCustom = (custom: Custom) => {
 
         for (const collision of seminar.collisions) {
           const collisionP = document.createElement("p");
-          collisionP.classList = "text-sm";
           collisionP.textContent = collision.name;
           collisionsDiv.appendChild(collisionP);
         }
