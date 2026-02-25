@@ -9,6 +9,11 @@ This extension improves some aspects of the system that I personally find frustr
 
 Adds a button that can opens the direct PDF in a new tab for subjects **IB000** and **PB154**.
 
+## File download button
+![file download button](./assets/file-download-button.png)
+
+Adds a button that can directly download the file for the **IB002** subject.
+
 ## Seminar overview
 ![calendar](./assets/calendar.png)
 ![seminars](./assets/seminars.png)

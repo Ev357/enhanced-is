@@ -1,10 +1,5 @@
 /* @ts-expect-error */
 import externalLink from "./external-link.svg" with { type: "text" };
+import { parseIcon } from "../utils/parse-icon";
 
-export const externalLinkIcon = () => {
-  const parser = new DOMParser();
-  const icon = parser.parseFromString(externalLink, "image/svg+xml").documentElement;
-
-  icon.classList.add("size-4", "shrink-0");
-  return icon;
-};
+export const externalLinkIcon = () => parseIcon(externalLink);
